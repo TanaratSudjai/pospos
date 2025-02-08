@@ -69,6 +69,7 @@ mysqli_stmt_close($stmt);
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -76,16 +77,47 @@ mysqli_stmt_close($stmt);
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        body { background-color: #f8f9fa; }
-        .card { border-radius: 15px; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
-        .table thead th { background-color: #4a5568; color: white; font-weight: 500; border: none; }
-        .back-btn { transition: all 0.3s ease; }
-        .back-btn:hover { transform: translateX(-5px); }
-        .card-header { background-color: #4a5568; color: white; border-radius: 15px 15px 0 0 !important; }
-        .badge { font-size: 0.85em; padding: 8px 12px; }
-        .table td { vertical-align: middle; }
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .table thead th {
+            background-color: #4a5568;
+            color: white;
+            font-weight: 500;
+            border: none;
+        }
+
+        .back-btn {
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            transform: translateX(-5px);
+        }
+
+        .card-header {
+            background-color: #4a5568;
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+        }
+
+        .badge {
+            font-size: 0.85em;
+            padding: 8px 12px;
+        }
+
+        .table td {
+            vertical-align: middle;
+        }
     </style>
 </head>
+
 <body>
     <div class="container my-5">
         <a href="/user_page.php" class="btn btn-outline-secondary mb-4 back-btn">
@@ -110,6 +142,7 @@ mysqli_stmt_close($stmt);
                                     <th>เบอร์โทรศัพท์</th>
                                     <th>สถานะ</th>
                                     <th>สินค้า</th>
+                                    <th>จ่ายเงิน</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -120,23 +153,23 @@ mysqli_stmt_close($stmt);
                                         <td class="fw-bold"><?php echo number_format($order['total_amount'], 2); ?> บาท</td>
                                         <td><?php echo htmlspecialchars($order['phone']); ?></td>
                                         <td>
-                                            <span class="badge rounded-pill <?php 
-                                                echo match($order['status']) {
-                                                    'pending' => 'bg-warning',
-                                                    'processing' => 'bg-info',
-                                                    'completed' => 'bg-success',
-                                                    'cancelled' => 'bg-danger',
-                                                    default => 'bg-secondary'
-                                                };
+                                            <span class="badge rounded-pill <?php
+                                            echo match ($order['status']) {
+                                                'pending' => 'bg-warning',
+                                                'processing' => 'bg-info',
+                                                'completed' => 'bg-success',
+                                                'cancelled' => 'bg-danger',
+                                                default => 'bg-secondary'
+                                            };
                                             ?>">
-                                                <i class="fas <?php 
-                                                    echo match($order['status']) {
-                                                        'pending' => 'fa-clock',
-                                                        'processing' => 'fa-spinner fa-spin',
-                                                        'completed' => 'fa-check',
-                                                        'cancelled' => 'fa-times',
-                                                        default => 'fa-question'
-                                                    };
+                                                <i class="fas <?php
+                                                echo match ($order['status']) {
+                                                    'pending' => 'fa-clock',
+                                                    'processing' => 'fa-spinner fa-spin',
+                                                    'completed' => 'fa-check',
+                                                    'cancelled' => 'fa-times',
+                                                    default => 'fa-question'
+                                                };
                                                 ?> me-1"></i>
                                                 <?php echo htmlspecialchars($order['status']); ?>
                                             </span>
@@ -145,13 +178,16 @@ mysqli_stmt_close($stmt);
                                             <ul class="list-unstyled">
                                                 <?php foreach ($order['items'] as $item): ?>
                                                     <li>
-                                                        <i class="fas fa-box"></i> 
-                                                        <?php echo htmlspecialchars($item['name']); ?> 
-                                                        (<?php echo htmlspecialchars($item['quantity']); ?> ชิ้น × 
+                                                        <i class="fas fa-box"></i>
+                                                        <?php echo htmlspecialchars($item['name']); ?>
+                                                        (<?php echo htmlspecialchars($item['quantity']); ?> ชิ้น ×
                                                         <?php echo number_format($item['price'], 2); ?> บาท)
                                                     </li>
                                                 <?php endforeach; ?>
                                             </ul>
+                                        </td>
+                                        <td>
+                                            <a href="/promptpay_get.php?order_id=<?php echo $order['order_id']; ?>">จ่ายเลย</a>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
@@ -170,4 +206,5 @@ mysqli_stmt_close($stmt);
         </div>
     </div>
 </body>
+
 </html>
