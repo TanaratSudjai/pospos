@@ -93,11 +93,13 @@ VALUES (?, ?, ?, ?, ?)";
         }
 
         // อัปเดตสต็อกสินค้า
-        mysqli_stmt_bind_param($stmt_stock, "ii", $item['quantity'], $variant_id);
+        mysqli_stmt_bind_param($stmt_stock, "ii", $item['quantity'], $item['variant_id']);
         if (!mysqli_stmt_execute($stmt_stock)) {
             throw new Exception("SQL Error in stock update: " . mysqli_error($conn));
         }
     }
+
+
 
     // ปิด statement
     mysqli_stmt_close($stmt_item);
