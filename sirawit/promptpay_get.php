@@ -78,23 +78,11 @@ $order_data = mysqli_fetch_assoc($order_result);
 $promptpay_number = "0641742127"; // เปลี่ยนเป็นเบอร์พร้อมเพย์ของร้านค้า
 $amount = $order_data['total_amount'];
 
-// Generate QR Code payload
-$payload = generatePayload($promptpay_number, $amount);
 
-require_once("promptpay/lib/PromptPayQR.php"); // Include PromptPayQR library
-require_once("promptpay/lib/qrlib.php"); // Include PHP QR Code library
+$qr = "https://promptpay.io/0641742127.png/" . $order_data['total_amount'];
 
-$promptpayID = "0641742127"; // Your PromptPay number
-$amount = 100.50; // Amount in THB
 
-// Create PromptPayQR object
-$PromptPayQR = new PromptPayQR();
-$PromptPayQR->size = 8; // Set QR size
-$PromptPayQR->id = $promptpayID; // Set PromptPay ID
-$PromptPayQR->amount = $amount; // Set amount
 
-// Generate QR Code
-$qrCodePath = $PromptPayQR->generate();
 ?>
 
 <!DOCTYPE html>
@@ -123,12 +111,10 @@ $qrCodePath = $PromptPayQR->generate();
                         <div class="text-center mb-4">
                             <!-- QR Code -->
                             <div class="bg-light p-4 mb-3 rounded">
-                                <?php if ($qrCodePath) {
-                                    echo '<img src="data:image/png;base64,' . base64_encode(file_get_contents($qrCodePath)) . '" />';
-                                } else {
-                                    echo "Failed to generate QR Code!";
-                                }
-                                ?>?>
+                                <?php 
+                                    echo '<img src="' . $qr . '" />';
+                                
+                                ?>
 
 
                             </div>
