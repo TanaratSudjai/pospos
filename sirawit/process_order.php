@@ -74,8 +74,7 @@ try {
         throw new Exception("SQL Error: " . mysqli_error($conn));
     }
     $order_id = mysqli_insert_id($conn);
-    mysqli_stmt_close($stmt);
-
+  
     // เพิ่มรายการสินค้าในคำสั่งซื้อ
     $item_sql = "INSERT INTO tb_orderdetails (order_id, variant_id, quantity, price) VALUES (?, ?, ?, ?)";
     $stmt_item = mysqli_prepare($conn, $item_sql);
