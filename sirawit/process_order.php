@@ -74,19 +74,18 @@ try {
         throw new Exception("SQL Error: " . mysqli_error($conn));
     }
     $order_id = mysqli_insert_id($conn);
-  
+
     // เพิ่มรายการสินค้าในคำสั่งซื้อ
     $item_sql = "INSERT INTO tb_orderdetails (order_id, variant_id, quantity, price) VALUES (?, ?, ?, ?)";
     $stmt_item = mysqli_prepare($conn, $item_sql);
 
+    // update product stock
     $update_stock_sql = "UPDATE tb_variants SET stock_quantity = stock_quantity - ? WHERE variant_id = ?";
     $stmt_stock = mysqli_prepare($conn, $update_stock_sql);
     foreach ($_SESSION['cart'] as $variant_id => $item) {
         mysqli_stmt_bind_param($stmt_stock, "ii", $item['quantity'], $variant_id);
         mysqli_stmt_execute($stmt_stock);
     }
-    mysqli_stmt_close($stmt_stock);
-
 
     // ยืนยัน transaction
     mysqli_commit($conn);
@@ -99,6 +98,7 @@ try {
         alert('สั่งซื้อสินค้าสำเร็จ! เลขที่คำสั่งซื้อของคุณคือ: " . $order_id . "');
         window.location.href='order_history.php';
     </script>";
+    mysqli_stmt_close($stmt_stock);
 
 } catch (Exception $e) {
     // ย้อนกลับ transaction หากเกิดข้อผิดพลาด
