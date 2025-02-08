@@ -76,16 +76,33 @@ try {
     $order_id = mysqli_insert_id($conn);
 
     // เพิ่มรายการสินค้าในคำสั่งซื้อ
-    $item_sql = "INSERT INTO tb_orderdetails (order_id, variant_id, quantity, price) VALUES (?, ?, ?, ?)";
+    $item_sql = "INSERT INTO tb_orderdetails (order_id, variant_id, quantity, price, subtotal) 
+VALUES (?, ?, ?, ?, ?)";
     $stmt_item = mysqli_prepare($conn, $item_sql);
 
-    // update product stock
     $update_stock_sql = "UPDATE tb_variants SET stock_quantity = stock_quantity - ? WHERE variant_id = ?";
     $stmt_stock = mysqli_prepare($conn, $update_stock_sql);
+
     foreach ($_SESSION['cart'] as $variant_id => $item) {
+        $subtotal = $item['quantity'] * $item['price']; // คำนวณราคาย่อยของสินค้า
+
+        // เพิ่มรายการสินค้าใน tb_orderdetails
+        mysqli_stmt_bind_param($stmt_item, "iiidd", $order_id, $item['variant_id'], $item['quantity'], $item['price'], $subtotal);
+        if (!mysqli_stmt_execute($stmt_item)) {
+            throw new Exception("SQL Error in order details: " . mysqli_error($conn));
+        }
+
+        // อัปเดตสต็อกสินค้า
         mysqli_stmt_bind_param($stmt_stock, "ii", $item['quantity'], $variant_id);
-        mysqli_stmt_execute($stmt_stock);
+        if (!mysqli_stmt_execute($stmt_stock)) {
+            throw new Exception("SQL Error in stock update: " . mysqli_error($conn));
+        }
     }
+
+    // ปิด statement
+    mysqli_stmt_close($stmt_item);
+    mysqli_stmt_close($stmt_stock);
+
 
     // ยืนยัน transaction
     mysqli_commit($conn);
@@ -98,8 +115,6 @@ try {
         alert('สั่งซื้อสินค้าสำเร็จ! เลขที่คำสั่งซื้อของคุณคือ: " . $order_id . "');
         window.location.href='order_history.php';
     </script>";
-    mysqli_stmt_close($stmt_stock);
-
 } catch (Exception $e) {
     // ย้อนกลับ transaction หากเกิดข้อผิดพลาด
     mysqli_rollback($conn);
@@ -110,4 +125,3 @@ try {
         window.location.href='cartpage.php';
     </script>";
 }
-?>
