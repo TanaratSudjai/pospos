@@ -3,32 +3,59 @@ include "connect.php";
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
-
 // Function to generate PromptPay Payload
-function generatePayload($promptpayID, $amount)
+function generatePayload($promptpayID, $amount = 0)
 {
-    // Remove any dashes or spaces from PromptPay ID
-    $promptpayID = str_replace(['-', ' '], '', $promptpayID);
+    $promptpayID = preg_replace('/[^0-9]/', '', $promptpayID); // Remove non-numeric characters
 
-    // Format amount to have 2 decimal places
-    $amount = number_format($amount, 2, '.', '');
+    // Service Code for PromptPay
+    $merchantType = "0016A000000677010111";
 
-    // Generate payload
-    $target = str_pad($promptpayID, 13, '0', STR_PAD_LEFT);
+    if (strlen($promptpayID) == 10) {
+        // Mobile Number (Phone Number must start with '66')
+        $target = "0066" . substr($promptpayID, 1);
+    } else if (strlen($promptpayID) == 15) {
+        // Tax ID
+        $target = "00" . $promptpayID;
+    } else {
+        return false; // Invalid PromptPay ID
+    }
 
-    $data = [
-        '00020101', // Version
-        '010211',   // Version
-        '29370016A000000677010111', // PromptPay
-        '0115' . $target, // Target
-        '5802TH',   // Country Code
-        '54' . str_pad(number_format($amount, 2, '.', ''), 13, '0', STR_PAD_LEFT), // Amount
-        '6304'      // Checksum
-    ];
+    // Create the EMVCo QR Code structure
+    $payload  = "000201"; // Version
+    $payload .= "010211"; // QR Code Type (Static QR)
+    $payload .= "2937";   // Length of PromptPay Data
+    $payload .= "0016" . $merchantType; // PromptPay Service
+    $payload .= "0114" . $target; // Mobile Number or Tax ID
+    $payload .= "530376"; // Currency (THB)
 
-    $payload = implode('', $data);
+    if ($amount > 0) {
+        $amountStr = number_format($amount, 2, '.', '');
+        $payload .= "54" . str_pad(strlen($amountStr), 2, '0', STR_PAD_LEFT) . $amountStr;
+    }
+
+    $payload .= "5802TH"; // Country Code (Thailand)
+    $payload .= "6304";   // Checksum placeholder
+
+    // Calculate CRC16 checksum
+    $payload .= calculateCRC16($payload);
+
     return $payload;
 }
+
+// ✅ **CRC16 Calculation**
+function calculateCRC16($payload)
+{
+    $crc = 0xFFFF;
+    for ($i = 0; $i < strlen($payload); $i++) {
+        $x = (($crc >> 8) ^ ord($payload[$i])) & 0xFF;
+        $x ^= $x >> 4;
+        $crc = (($crc << 8) ^ ($x << 12) ^ ($x << 5) ^ $x) & 0xFFFF;
+    }
+    return $crc;
+}
+
+
 
 $order_id = $_GET['order_id'];
 
@@ -48,11 +75,26 @@ $order_result = mysqli_stmt_get_result($stmt);
 $order_data = mysqli_fetch_assoc($order_result);
 
 // Set your PromptPay number here
-$promptpay_number = "0812345678"; // เปลี่ยนเป็นเบอร์พร้อมเพย์ของร้านค้า
+$promptpay_number = "0641742127"; // เปลี่ยนเป็นเบอร์พร้อมเพย์ของร้านค้า
 $amount = $order_data['total_amount'];
 
 // Generate QR Code payload
 $payload = generatePayload($promptpay_number, $amount);
+
+require_once("promptpay/lib/PromptPayQR.php"); // Include PromptPayQR library
+require_once("promptpay/lib/qrlib.php"); // Include PHP QR Code library
+
+$promptpayID = "0641742127"; // Your PromptPay number
+$amount = 100.50; // Amount in THB
+
+// Create PromptPayQR object
+$PromptPayQR = new PromptPayQR();
+$PromptPayQR->size = 8; // Set QR size
+$PromptPayQR->id = $promptpayID; // Set PromptPay ID
+$PromptPayQR->amount = $amount; // Set amount
+
+// Generate QR Code
+$qrCodePath = $PromptPayQR->generate();
 ?>
 
 <!DOCTYPE html>
@@ -81,8 +123,14 @@ $payload = generatePayload($promptpay_number, $amount);
                         <div class="text-center mb-4">
                             <!-- QR Code -->
                             <div class="bg-light p-4 mb-3 rounded">
-                                <img src="https://chart.googleapis.com/chart?cht=qr&chl=<?php echo urlencode($payload); ?>&chs=300x300&choe=UTF-8&chld=L|2"
-                                    class="img-fluid" alt="QR Code">
+                                <?php if ($qrCodePath) {
+                                    echo '<img src="data:image/png;base64,' . base64_encode(file_get_contents($qrCodePath)) . '" />';
+                                } else {
+                                    echo "Failed to generate QR Code!";
+                                }
+                                ?>?>
+
+
                             </div>
                             <div class="small text-muted">
                                 Scan with any Banking app that supports PromptPay
@@ -127,8 +175,8 @@ $payload = generatePayload($promptpay_number, $amount);
     </div>
 
     <script>
-        $(document).ready(function () {
-            $('#confirmPayment').click(function () {
+        $(document).ready(function() {
+            $('#confirmPayment').click(function() {
                 if (confirm('ยืนยันการชำระเงิน?')) {
                     $.ajax({
                         url: 'update_payment_status.php',
@@ -136,11 +184,11 @@ $payload = generatePayload($promptpay_number, $amount);
                         data: {
                             order_id: <?php echo $order_id; ?>
                         },
-                        success: function (response) {
+                        success: function(response) {
                             alert('ชำระเงินเรียบร้อยแล้ว');
                             window.location.href = 'order_history.php';
                         },
-                        error: function () {
+                        error: function() {
                             alert('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
                         }
                     });

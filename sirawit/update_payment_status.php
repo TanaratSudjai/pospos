@@ -10,8 +10,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     try {
         // Insert payment record
-        $query_insert_payment = "INSERT INTO tb_payments (order_id, payment_amount, payment_date, payment_status) 
-                               SELECT order_id, total_amount, NOW(), 'completed' 
+        $query_insert_payment = "INSERT INTO tb_payments (order_id, payment_date, amount, status) 
+                               SELECT order_id, NOW(), total_amount, 'paid' 
                                FROM tb_orders 
                                WHERE order_id = ?";
         $stmt = mysqli_prepare($conn, $query_insert_payment);

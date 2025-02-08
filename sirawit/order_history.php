@@ -154,23 +154,25 @@ mysqli_stmt_close($stmt);
                                         <td><?php echo htmlspecialchars($order['phone']); ?></td>
                                         <td>
                                             <span class="badge rounded-pill <?php
-                                            echo match ($order['status']) {
-                                                'pending' => 'bg-warning',
-                                                'processing' => 'bg-info',
-                                                'completed' => 'bg-success',
-                                                'cancelled' => 'bg-danger',
-                                                default => 'bg-secondary'
-                                            };
-                                            ?>">
+                                                                            echo match ($order['status']) {
+                                                                                'pending' => 'bg-warning',
+                                                                                'processing' => 'bg-info',
+                                                                                'completed' => 'bg-success',
+                                                                                'cancelled' => 'bg-danger',
+                                                                                'ชำระแล้ว' => 'bg-success', // เปลี่ยนเป็นสีเขียว
+                                                                                default => 'bg-secondary'
+                                                                            };
+                                                                            ?>">
                                                 <i class="fas <?php
-                                                echo match ($order['status']) {
-                                                    'pending' => 'fa-clock',
-                                                    'processing' => 'fa-spinner fa-spin',
-                                                    'completed' => 'fa-check',
-                                                    'cancelled' => 'fa-times',
-                                                    default => 'fa-question'
-                                                };
-                                                ?> me-1"></i>
+                                                                echo match ($order['status']) {
+                                                                    'pending' => 'fa-clock',
+                                                                    'processing' => 'fa-spinner fa-spin',
+                                                                    'completed' => 'fa-check',
+                                                                    'cancelled' => 'fa-times',
+                                                                    'ชำระแล้ว' => 'fa-money-bill-wave', // เปลี่ยนไอคอนเป็นเงิน
+                                                                    default => 'fa-question'
+                                                                };
+                                                                ?> me-1"></i>
                                                 <?php echo htmlspecialchars($order['status']); ?>
                                             </span>
                                         </td>
@@ -187,11 +189,14 @@ mysqli_stmt_close($stmt);
                                             </ul>
                                         </td>
                                         <td>
-                                            <a href="/promptpay_get.php?order_id=<?php echo $order['order_id']; ?>">จ่ายเลย</a>
+                                            <?php if ($order['status'] !== 'ชำระแล้ว'): ?>
+                                                <a href="/promptpay_get.php?order_id=<?php echo $order['order_id']; ?>">จ่ายเลย</a>
+                                            <?php endif; ?>
                                         </td>
                                     </tr>
                                 <?php endforeach; ?>
                             </tbody>
+
                         </table>
                     </div>
                 <?php else: ?>
