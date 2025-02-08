@@ -33,10 +33,13 @@ try {
     $out_of_stock_items = [];
 
     foreach ($_SESSION['cart'] as $variant_id => $item) {
+        if (!is_numeric($variant_id)) {
+            throw new Exception("variant_id ผิดพลาด: " . var_export($variant_id, true));
+        }
         // ตรวจสอบสต็อกสินค้า
         $check_stock = "SELECT stock_quantity FROM tb_variants WHERE variant_id = ?";
         $stmt = mysqli_prepare($conn, $check_stock);
-        mysqli_stmt_bind_param($stmt, "i", $variant_id);
+        mysqli_stmt_bind_param($stmt, "i", $item['variant_id']);
         if (!mysqli_stmt_execute($stmt)) {
             throw new Exception("SQL Error: " . mysqli_error($conn));
         }
@@ -44,6 +47,11 @@ try {
         mysqli_stmt_bind_result($stmt, $stock_quantity);
         mysqli_stmt_fetch($stmt);
         mysqli_stmt_close($stmt);
+
+
+        // var_dump("Variant ID: " . $variant_id);
+        // var_dump("Stock in DB: " . $stock_quantity);
+        // var_dump("Order Quantity: " . $item['quantity']);
 
         if ($item['quantity'] > $stock_quantity) {
             $stock_check_failed = true;
@@ -72,13 +80,14 @@ try {
     $item_sql = "INSERT INTO tb_orderdetails (order_id, variant_id, quantity, price) VALUES (?, ?, ?, ?)";
     $stmt_item = mysqli_prepare($conn, $item_sql);
 
+    $update_stock_sql = "UPDATE tb_variants SET stock_quantity = stock_quantity - ? WHERE variant_id = ?";
+    $stmt_stock = mysqli_prepare($conn, $update_stock_sql);
     foreach ($_SESSION['cart'] as $variant_id => $item) {
-        mysqli_stmt_bind_param($stmt_item, "iiid", $order_id, $variant_id, $item['quantity'], $item['price']);
-        if (!mysqli_stmt_execute($stmt_item)) {
-            throw new Exception("SQL Error: " . mysqli_error($conn));
-        }
+        mysqli_stmt_bind_param($stmt_stock, "ii", $item['quantity'], $variant_id);
+        mysqli_stmt_execute($stmt_stock);
     }
-    mysqli_stmt_close($stmt_item);
+    mysqli_stmt_close($stmt_stock);
+
 
     // ยืนยัน transaction
     mysqli_commit($conn);
