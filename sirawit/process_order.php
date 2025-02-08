@@ -10,13 +10,10 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-
 if (!isset($_SESSION['cart']) || empty($_SESSION['cart'])) {
     echo "<script>alert('ไม่พบสินค้าในตะกร้า'); window.location.href='user_page.php';</script>";
     exit();
 }
-
-
 
 if (!isset($_SESSION['UserID'])) {
     echo "<script>alert('กรุณาเข้าสู่ระบบก่อนทำการสั่งซื้อ'); window.location.href='login.php';</script>";
@@ -24,14 +21,14 @@ if (!isset($_SESSION['UserID'])) {
 }
 
 // รับข้อมูลจากฟอร์ม
-$phone = mysqli_real_escape_string($conn, $_POST['phone']);
+$phone = $_POST['phone'];
 $user_id = (int) $_SESSION['UserID'];
-$total_price = 0; // ตัวแปรสำหรับเก็บราคารวม
+$total_price = 0;
+
 try {
-    // เริ่มต้น transaction
+    // เริ่ม transaction
     mysqli_begin_transaction($conn);
 
-    $total_price = 0;
     $stock_check_failed = false;
     $out_of_stock_items = [];
 
@@ -44,16 +41,16 @@ try {
             throw new Exception("SQL Error: " . mysqli_error($conn));
         }
         mysqli_stmt_store_result($stmt);
-        mysqli_stmt_bind_result($stmt, $check_stock);
+        mysqli_stmt_bind_result($stmt, $stock_quantity);
         mysqli_stmt_fetch($stmt);
+        mysqli_stmt_close($stmt);
 
-        if ($item['quantity'] > $check_stock) {
+        if ($item['quantity'] > $stock_quantity) {
             $stock_check_failed = true;
             $out_of_stock_items[] = $item['name'];
         }
 
         $total_price += $item['price'] * $item['quantity'];
-        mysqli_stmt_close($stmt);
     }
 
     if ($stock_check_failed) {
@@ -74,6 +71,7 @@ try {
     // เพิ่มรายการสินค้าในคำสั่งซื้อ
     $item_sql = "INSERT INTO tb_orderdetails (order_id, variant_id, quantity, price) VALUES (?, ?, ?, ?)";
     $stmt_item = mysqli_prepare($conn, $item_sql);
+
     foreach ($_SESSION['cart'] as $variant_id => $item) {
         mysqli_stmt_bind_param($stmt_item, "iiid", $order_id, $variant_id, $item['quantity'], $item['price']);
         if (!mysqli_stmt_execute($stmt_item)) {
@@ -89,15 +87,18 @@ try {
     unset($_SESSION['cart']);
 
     // แสดงข้อความสำเร็จ
-    echo "<script        alert('สั่งซื้อสินค้าสำเร็จ! เลขที่คำสั่งซื้อของคุณคือ: " . $order_id . "');
+    echo "<script>
+        alert('สั่งซื้อสินค้าสำเร็จ! เลขที่คำสั่งซื้อของคุณคือ: " . $order_id . "');
         window.location.href='order_history.php';
     </script>";
+
 } catch (Exception $e) {
-    // หากเกิดข้อผิดพลาด ให้ rollback การทำงานทั้งหมด
+    // ย้อนกลับ transaction หากเกิดข้อผิดพลาด
     mysqli_rollback($conn);
     error_log("Order Error: " . $e->getMessage());
+
     echo "<script>
-        alert('เกิดข้อผิดพลาดในการสั่งซื้อ: " . htmlspecialchars($e->getMessage()) . "');
+        alert('เกิดข้อผิดพลาดในการสั่งซื้อ: " . addslashes(htmlspecialchars($e->getMessage())) . "');
         window.location.href='cartpage.php';
     </script>";
 }
