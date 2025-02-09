@@ -57,11 +57,11 @@ $_SESSION['slip_path'] = isset($_SESSION['slip_path']) ? $_SESSION['slip_path'] 
         <div class="row">
             <div class="col-md-12">
                 <div class="card">
-                    <div class="card-header text-center">
+                    <!-- <div class="card-header text-center">
                         รายการสินค้าที่คุณเลือก <?php
                         print_r($item);
                         ?>
-                    </div>
+                    </div> -->
                     <div class="card-body">
                         <form action="update_cart.php" method="POST">
                             <table class="table">
