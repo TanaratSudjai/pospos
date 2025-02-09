@@ -1,5 +1,5 @@
 <?php
-include "connect.php"; 
+include "connect.php";
 
 // รับข้อมูลจากฟอร์ม
 $productID = mysqli_real_escape_string($conn, $_POST['ID']);

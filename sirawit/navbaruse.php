@@ -54,9 +54,12 @@ if (isset($_SESSION['cart']) && !empty($_SESSION['cart'])) {
                     </a>
                 </li>
                 <!-- สถานะผู้ใช้ -->
-                <li class="nav-item">
+                <li class="nav-item d-flex gap-1">
                     <span class="nav-link text-dark fw-semibold" style="border: 1px solid #ccc; padding: 5px 15px; border-radius: 25px; background-color: #f8f9fa;">
                         สวัสดี, <?php echo $userName; ?>
+                    </span>
+                    <span class="nav-link text-dark fw-semibold" style="border: 1px solid #ccc; padding: 5px 15px; border-radius: 25px; background-color: #f8f9fa;">
+                       <a href="/order_history" class="text-decoration-none text-dark">ประวัติการสั่งซื้อ</a>
                     </span>
                 </li>
                 <li class="nav-item">

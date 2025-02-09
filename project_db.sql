@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Feb 07, 2025 at 02:48 PM
--- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- Generation Time: Feb 08, 2025 at 02:53 PM
+-- Server version: 10.4.28-MariaDB
+-- PHP Version: 8.2.4
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -71,20 +71,16 @@ CREATE TABLE `tb_orders` (
   `order_date` datetime NOT NULL,
   `status` varchar(50) DEFAULT 'pending',
   `tracking` varchar(50) DEFAULT NULL,
-  `total_amount` decimal(10,2) NOT NULL
+  `total_amount` decimal(10,2) NOT NULL,
+  `phone` varchar(20) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
 
 --
 -- Dumping data for table `tb_orders`
 --
 
-INSERT INTO `tb_orders` (`order_id`, `user_id`, `order_date`, `status`, `tracking`, `total_amount`) VALUES
-(1, 3, '2025-02-06 16:51:34', 'pending', NULL, 870.00),
-(2, 3, '2025-02-06 16:57:11', 'pending', NULL, 870.00),
-(3, 3, '2025-02-06 16:57:12', 'pending', NULL, 870.00),
-(4, 3, '2025-02-06 16:57:13', 'pending', NULL, 870.00),
-(5, 3, '2025-02-06 16:57:13', 'pending', NULL, 870.00),
-(6, 3, '2025-02-06 16:59:59', 'pending', NULL, 580.00);
+INSERT INTO `tb_orders` (`order_id`, `user_id`, `order_date`, `status`, `tracking`, `total_amount`, `phone`) VALUES
+(12, 1, '2025-02-08 20:48:24', 'รอการชำระเงิน', NULL, 750.00, '0987465104');
 
 -- --------------------------------------------------------
 
@@ -123,7 +119,8 @@ CREATE TABLE `tb_products` (
 --
 
 INSERT INTO `tb_products` (`product_id`, `name`, `price`, `description`, `product_pic`, `category_id`, `created_at`, `updated_at`) VALUES
-(1, 'เดรสแขนบัวลายดอกกุหลาบ 3 สี', 290.00, 'Texture: Chiffon fabric with full lining\r\nSize: M\r\nBust: 35”\r\nWaist: 27”\r\nHips: 37”\r\nLength: 33.5”\r\n\r\nSize: L\r\nBust: 37”\r\nWaist: 30”\r\nHips: 40”\r\nLength: 34”\r\n\r\nSize: XL\r\nBust: 40”\r\nWaist: 33”\r\nHips: 42”\r\nLength: 35”', '436310449_747138704197473_7033009692385520984_n.jpg', 1, '2025-02-05 16:45:21', '2025-02-05 16:45:21');
+(103, 'เสื้อคอกลม', 500.00, 'ทดสอบ', 'white-shoes-no505.jpg', 1, '2025-02-08 13:47:19', '2025-02-08 13:47:19'),
+(104, 'เสื้อคอกลม', 250.00, 'ทดสอบบ2', 'cny2025.jpg', 3, '2025-02-08 13:47:59', '2025-02-08 13:47:59');
 
 -- --------------------------------------------------------
 
@@ -175,12 +172,8 @@ CREATE TABLE `tb_variants` (
 --
 
 INSERT INTO `tb_variants` (`variant_id`, `product_id`, `color`, `size`, `stock_quantity`, `variant_pic`) VALUES
-(6, 1, 'แดง', 'M', 5, '436356395_747138724197471_6019114367478175434_n.jpg'),
-(7, 1, 'ขาว', 'M', 5, '436356395_747138724197471_6019114367478175434_n.jpg'),
-(8, 1, 'ดำ', 'M', 5, 'S__63823874.jpg'),
-(9, 1, 'แดง', 'L', 5, '436310449_747138704197473_7033009692385520984_n.jpg'),
-(10, 1, 'ขาว', 'L', 5, '436356395_747138724197471_6019114367478175434_n.jpg'),
-(11, 1, 'ดำ', 'L', 5, 'S__63823874.jpg');
+(16, 103, 'แดง', 'S', 5, 'white-shoes-no505.jpg'),
+(17, 104, 'ดำ', 'S', 5, 'banner3.jpg');
 
 --
 -- Indexes for dumped tables
@@ -249,13 +242,13 @@ ALTER TABLE `tb_categories`
 -- AUTO_INCREMENT for table `tb_orderdetails`
 --
 ALTER TABLE `tb_orderdetails`
-  MODIFY `order_detail_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `order_detail_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `tb_orders`
 --
 ALTER TABLE `tb_orders`
-  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `tb_payments`
@@ -267,7 +260,7 @@ ALTER TABLE `tb_payments`
 -- AUTO_INCREMENT for table `tb_products`
 --
 ALTER TABLE `tb_products`
-  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=105;
 
 --
 -- AUTO_INCREMENT for table `tb_users`
@@ -279,7 +272,7 @@ ALTER TABLE `tb_users`
 -- AUTO_INCREMENT for table `tb_variants`
 --
 ALTER TABLE `tb_variants`
-  MODIFY `variant_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `variant_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- Constraints for dumped tables
@@ -290,8 +283,7 @@ ALTER TABLE `tb_variants`
 --
 ALTER TABLE `tb_orderdetails`
   ADD CONSTRAINT `fk_variant_id` FOREIGN KEY (`variant_id`) REFERENCES `tb_variants` (`variant_id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `tb_orderdetails_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `tb_orders` (`order_id`),
-  ADD CONSTRAINT `tb_orderdetails_ibfk_2` FOREIGN KEY (`variant_id`) REFERENCES `tb_variants` (`variant_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `tb_orderdetails_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `tb_orders` (`order_id`);
 
 --
 -- Constraints for table `tb_orders`
